@@ -7,6 +7,7 @@ from django.utils.encoding import smart_str,force_bytes,DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from hr_api.user_authentication.utils import Utils
+from utils.constants.api_constants import *
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(required=True,write_only=True)
@@ -88,10 +89,10 @@ class SendPasswordResetEmailSerializer(serializers.ModelSerializer):
             user = User.objects.get(email=email)
             # get user id 
             uid = urlsafe_base64_encode(force_bytes(user.user_id))
-            print("Encoded UID --->",uid)
+            # print("Encoded UID --->",uid)
             # generate Token User for rest password
             token = PasswordResetTokenGenerator().make_token(user)
-            print('Password Rest Token -->',token)
+            # print('Password Rest Token -->',token)
             # generate link reset Password
             link = 'http//localhost:3000/api/user/reset/'+uid+'/'+token
             print("Password Reset Link -->",link)
@@ -105,7 +106,7 @@ class SendPasswordResetEmailSerializer(serializers.ModelSerializer):
             Utils.send_email(data)
             return attrs
         else:
-            raise ValidationError('Yor are not a Registered User') 
+            raise ValidationError(ERROR_ARE_NOT_REGISTER_USER) 
 
 
 class UserPasswordResetSerializer(serializers.Serializer):
@@ -129,13 +130,13 @@ class UserPasswordResetSerializer(serializers.Serializer):
             user = User.objects.get(user_id=user_id)
             # check token validate or not 
             if not PasswordResetTokenGenerator().check_token(user,token):
-                raise ValidationError("Token is not Valid or Expired ")
+                raise ValidationError(TOKEN_IS_NOT_VALID_EXPIRED)
             user.set_password(password)
             user.save()
             return super().validate(attrs)
         except DjangoUnicodeDecodeError:
             PasswordResetTokenGenerator().check_token(user,token)
-            raise ValidationError("Token is not Valid or Expired ")
+            raise ValidationError(TOKEN_IS_NOT_VALID_EXPIRED)
 
        
         
